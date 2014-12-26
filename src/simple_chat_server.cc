@@ -1,6 +1,9 @@
 #include <bits/stdc++.h>
 
 #include <http/http.hh>
+#include <signal.h>
+#include <unistd.h>
+#include <cstring>
 
 using namespace std;
 
@@ -26,6 +29,8 @@ map <string, string> parse_post_params(vector <char> const& s)
 	for (char c : s) {
 		if (c == '&') {
 			result[key] = value;
+			key = "";
+			value = "";
 			cur = &key;
 		} else if (c == '=') {
 			cur = &value;
@@ -105,8 +110,17 @@ private:
 	http::server server;
 };
 
+void signal_handler(int)
+{
+	static const volatile char message[] = "Stopping application, wait...\n";
+	static const volatile size_t length = sizeof(message) / sizeof(char);
+	write(1, (char*) message, length);
+	http::main_loop::stop();
+}
+
 int main()
 {
+	signal(SIGINT, signal_handler);
 	try {
 		simple_chat_server server("127.0.0.1", 33333);
 		http::main_loop::start();
