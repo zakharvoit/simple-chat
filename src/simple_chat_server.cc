@@ -19,14 +19,55 @@ string load_file(string path)
 	              (istreambuf_iterator<char>()));
 }
 
-map <string, string> parse_post_params(vector <char> const& s)
+string trim(string const& s)
 {
+	auto b = s.begin();
+	auto e = s.end();
+
+	while (b != e && isspace(*b)) {
+		++b;
+	}
+
+	while (e - 1 > b && isspace(*(e - 1))) {
+		--e;
+	}
+
+	return string(b, e);
+}
+
+int from_hex(char c)
+{
+	if ('A' <= c && c <= 'Z') {
+		return c - 'A' + 10;
+	} else if ('a' <= c && c <= 'z') {
+		return c - 'a' + 10;
+	} else {
+		return c - '0';
+	}
+}
+
+map <string, string> parse_post_params(vector <char> const& sv)
+{
+	string s(sv.begin(), sv.end());
+	string res;
+	for (int i = 0; i < (int) s.length(); i++) {
+		if (s[i] == '+') {
+			res += " ";
+		} else if (i < (int) s.length() - 2 && s[i] == '%') {
+			// Decode hex number
+			res += from_hex(s[i + 1]) * 16 + from_hex(s[i + 2]);
+			i += 2;
+		} else {
+			res += s[i];
+		}
+	}
+
 	map <string, string> result;
 	string key;
 	string value;
 	string* cur = &key;
 
-	for (char c : s) {
+	for (char c : res) {
 		if (c == '&') {
 			result[key] = value;
 			key = "";
@@ -41,6 +82,7 @@ map <string, string> parse_post_params(vector <char> const& s)
 	if (!key.empty()) {
 		result[key] = value;
 	}
+	
 	return result;
 }
 
