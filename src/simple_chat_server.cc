@@ -19,22 +19,6 @@ string load_file(string path)
 	              (istreambuf_iterator<char>()));
 }
 
-string trim(string const& s)
-{
-	auto b = s.begin();
-	auto e = s.end();
-
-	while (b != e && isspace(*b)) {
-		++b;
-	}
-
-	while (e - 1 > b && isspace(*(e - 1))) {
-		--e;
-	}
-
-	return string(b, e);
-}
-
 int from_hex(char c)
 {
 	if ('A' <= c && c <= 'Z') {
@@ -152,17 +136,8 @@ private:
 	http::server server;
 };
 
-void signal_handler(int)
-{
-	static const volatile char message[] = "Stopping application, wait...\n";
-	static const volatile size_t length = sizeof(message) / sizeof(char);
-	write(1, (char*) message, length);
-	http::main_loop::stop();
-}
-
 int main()
 {
-	signal(SIGINT, signal_handler);
 	try {
 		simple_chat_server server("127.0.0.1", 33333);
 		http::main_loop::start();
